@@ -75,14 +75,14 @@ class HuntMainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = DataBindingUtil.setContentView(this, R.layout.activity_hunt_main)
         viewModel = ViewModelProviders.of(this, SavedStateViewModelFactory(this.application,
-            this)).get(GeofenceViewModel::class.java)
+                this)).get(GeofenceViewModel::class.java)
         binding.viewmodel = viewModel
         binding.lifecycleOwner = this
         // TODO: Step 9 instantiate the geofencing client
         geofencingClient = LocationServices.getGeofencingClient(this)
 
         // Create channel for notifications
-        createChannel(this )
+        createChannel(this)
     }
 
     override fun onStart() {
@@ -109,8 +109,8 @@ class HuntMainActivity : AppCompatActivity() {
     override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
         val extras = intent?.extras
-        if(extras != null){
-            if(extras.containsKey(GeofencingConstants.EXTRA_GEOFENCE_INDEX)){
+        if (extras != null) {
+            if (extras.containsKey(GeofencingConstants.EXTRA_GEOFENCE_INDEX)) {
                 viewModel.updateHint(extras.getInt(GeofencingConstants.EXTRA_GEOFENCE_INDEX))
                 checkPermissionsAndStartGeofencing()
             }
@@ -122,32 +122,31 @@ class HuntMainActivity : AppCompatActivity() {
      * the background permission as well.
      */
     override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<String>,
-        grantResults: IntArray
+            requestCode: Int,
+            permissions: Array<String>,
+            grantResults: IntArray
     ) {
         // TODO: Step 5 add code to handle the result of the user's permission
         Log.d(TAG, "onRequestPermissionResult")
 
         if (
-            grantResults.isEmpty() ||
-            grantResults[LOCATION_PERMISSION_INDEX] == PackageManager.PERMISSION_DENIED ||
-            (requestCode == REQUEST_FOREGROUND_AND_BACKGROUND_PERMISSION_RESULT_CODE &&
-                    grantResults[BACKGROUND_LOCATION_PERMISSION_INDEX] ==
-                    PackageManager.PERMISSION_DENIED))
-        {
+                grantResults.isEmpty() ||
+                grantResults[LOCATION_PERMISSION_INDEX] == PackageManager.PERMISSION_DENIED ||
+                (requestCode == REQUEST_FOREGROUND_AND_BACKGROUND_PERMISSION_RESULT_CODE &&
+                        grantResults[BACKGROUND_LOCATION_PERMISSION_INDEX] ==
+                        PackageManager.PERMISSION_DENIED)) {
             Snackbar.make(
-                binding.activityMapsMain,
-                R.string.permission_denied_explanation,
-                Snackbar.LENGTH_INDEFINITE
+                    binding.activityMapsMain,
+                    R.string.permission_denied_explanation,
+                    Snackbar.LENGTH_INDEFINITE
             )
-                .setAction(R.string.settings) {
-                    startActivity(Intent().apply {
-                        action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS
-                        data = Uri.fromParts("package", BuildConfig.APPLICATION_ID, null)
-                        flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                    })
-                }.show()
+                    .setAction(R.string.settings) {
+                        startActivity(Intent().apply {
+                            action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS
+                            data = Uri.fromParts("package", BuildConfig.APPLICATION_ID, null)
+                            flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                        })
+                    }.show()
         } else {
             checkDeviceLocationSettingsAndStartGeofence()
         }
@@ -179,7 +178,7 @@ class HuntMainActivity : AppCompatActivity() {
      *  Uses the Location Client to check the current state of location settings, and gives the user
      *  the opportunity to turn on location services within our app.
      */
-    private fun checkDeviceLocationSettingsAndStartGeofence(resolve:Boolean = true) {
+    private fun checkDeviceLocationSettingsAndStartGeofence(resolve: Boolean = true) {
         // TODO: Step 6 add code to check that the device's location is on
         val locationRequest = LocationRequest.create().apply {
             priority = LocationRequest.PRIORITY_LOW_POWER
@@ -187,26 +186,26 @@ class HuntMainActivity : AppCompatActivity() {
         val builder = LocationSettingsRequest.Builder().addLocationRequest(locationRequest)
         val settingsClient = LocationServices.getSettingsClient(this)
         val locationSettingsResponseTask =
-            settingsClient.checkLocationSettings(builder.build())
+                settingsClient.checkLocationSettings(builder.build())
         locationSettingsResponseTask.addOnFailureListener { exception ->
-            if (exception is ResolvableApiException && resolve){
+            if (exception is ResolvableApiException && resolve) {
                 try {
                     exception.startResolutionForResult(this@HuntMainActivity,
-                        REQUEST_TURN_DEVICE_LOCATION_ON)
+                            REQUEST_TURN_DEVICE_LOCATION_ON)
                 } catch (sendEx: IntentSender.SendIntentException) {
                     Log.d(TAG, "Error getting location settings resolution: " + sendEx.message)
                 }
             } else {
                 Snackbar.make(
-                    binding.activityMapsMain,
-                    R.string.location_required_error, Snackbar.LENGTH_INDEFINITE
+                        binding.activityMapsMain,
+                        R.string.location_required_error, Snackbar.LENGTH_INDEFINITE
                 ).setAction(android.R.string.ok) {
                     checkDeviceLocationSettingsAndStartGeofence()
                 }.show()
             }
         }
         locationSettingsResponseTask.addOnCompleteListener {
-            if ( it.isSuccessful ) {
+            if (it.isSuccessful) {
                 addGeofenceForClue()
             }
         }
@@ -223,23 +222,23 @@ class HuntMainActivity : AppCompatActivity() {
         val foregroundLocationApproved = (
                 PackageManager.PERMISSION_GRANTED ==
                         ActivityCompat.checkSelfPermission(this,
-                            Manifest.permission.ACCESS_FINE_LOCATION))
+                                Manifest.permission.ACCESS_FINE_LOCATION))
         val backgroundPermissionApproved =
-            if (runningQOrLater) {
-                PackageManager.PERMISSION_GRANTED ==
-                        ActivityCompat.checkSelfPermission(
-                            this, Manifest.permission.ACCESS_BACKGROUND_LOCATION
-                        )
-            } else {
-                true
-            }
+                if (runningQOrLater) {
+                    PackageManager.PERMISSION_GRANTED ==
+                            ActivityCompat.checkSelfPermission(
+                                    this, Manifest.permission.ACCESS_BACKGROUND_LOCATION
+                            )
+                } else {
+                    true
+                }
         return foregroundLocationApproved && backgroundPermissionApproved
     }
 
     /*
      *  Requests ACCESS_FINE_LOCATION and (on Android 10+ (Q) ACCESS_BACKGROUND_LOCATION.
      */
-    @TargetApi(29 )
+    @TargetApi(29)
     private fun requestForegroundAndBackgroundLocationPermissions() {
         // TODO: Step 4 add code to request foreground and background permissions
         if (foregroundAndBackgroundLocationPermissionApproved())
@@ -254,9 +253,9 @@ class HuntMainActivity : AppCompatActivity() {
         }
         Log.d(TAG, "Request foreground only location permission")
         ActivityCompat.requestPermissions(
-            this@HuntMainActivity,
-            permissionsArray,
-            resultCode
+                this@HuntMainActivity,
+                permissionsArray,
+                resultCode
         )
     }
 
@@ -270,7 +269,7 @@ class HuntMainActivity : AppCompatActivity() {
         // TODO: Step 10 add in code to add the geofence
         if (viewModel.geofenceIsActive()) return
         val currentGeofenceIndex = viewModel.nextGeofenceIndex()
-        if(currentGeofenceIndex >= GeofencingConstants.NUM_LANDMARKS) {
+        if (currentGeofenceIndex >= GeofencingConstants.NUM_LANDMARKS) {
             removeGeofences()
             viewModel.geofenceActivated()
             return
@@ -319,11 +318,23 @@ class HuntMainActivity : AppCompatActivity() {
      * permission.
      */
     private fun removeGeofences() {
-        // TODO: Step 12 add in code to remove the geofences
+        if (!foregroundAndBackgroundLocationPermissionApproved()) {
+            return
+        }
+        geofencingClient.removeGeofences(geofencePendingIntent)?.run {
+            addOnSuccessListener {
+                Log.d(TAG, getString(R.string.geofences_removed))
+                Toast.makeText(applicationContext, R.string.geofences_removed, Toast.LENGTH_SHORT)
+                        .show()
+            }
+            addOnFailureListener {
+                Log.d(TAG, getString(R.string.geofences_not_removed))
+            }
+        }
     }
     companion object {
         internal const val ACTION_GEOFENCE_EVENT =
-            "HuntMainActivity.treasureHunt.action.ACTION_GEOFENCE_EVENT"
+                "HuntMainActivity.treasureHunt.action.ACTION_GEOFENCE_EVENT"
     }
 }
 
